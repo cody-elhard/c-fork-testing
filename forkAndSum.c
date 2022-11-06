@@ -14,9 +14,21 @@
 // Create an array of 4 pipes
 int pipefd[4][2];
 
-int numPipes = 3;
+int getNumber() {
+  int userInput;
+  printf("Enter the number of pipes you want to create: ");
+  scanf("%d", &userInput);
+  return userInput;
+}
 
 int main() {
+  int numPipes = getNumber();
+  if (numPipes > 4) {
+    // Raise an error
+    printf("You can only create 4 pipes at a time.\n");
+    return 1;
+  }
+
   // Create the pipe.
   for (int i = 0; i < 4; i++) {
     pipe(pipefd[i]);
