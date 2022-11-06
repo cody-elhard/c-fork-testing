@@ -14,6 +14,8 @@
 // Create an array of 4 pipes
 int pipefd[4][2];
 
+int numPipes = 3;
+
 int main() {
   // Create the pipe.
   for (int i = 0; i < 4; i++) {
@@ -23,7 +25,7 @@ int main() {
   int i;
   int pid;
 
-  for (i = 0; i < 4; i++) {
+  for (i = 0; i < numPipes; i++) {
     pid = fork();
     if (pid == 0) {
       // Child process
@@ -38,7 +40,7 @@ int main() {
   // Parent process
   int status;
 
-  for (i = 0; i < 4; i++) {
+  for (i = 0; i < numPipes; i++) {
     wait(&status);
     printf("Process finished with status: %d\n", status);
   }
@@ -47,7 +49,7 @@ int main() {
   int sumFromPipe;
   // Read 100 from the pipe.
   // For each child process, read the sum from the pipe and add it to the total sum.
-  for (i = 0; i < 4; i++) {
+  for (i = 0; i < numPipes; i++) {
     read(pipefd[i][0], &sumFromPipe, sizeof(sumFromPipe));
     totalSum += sumFromPipe;
   }
