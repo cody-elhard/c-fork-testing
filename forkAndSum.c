@@ -10,11 +10,15 @@
 // This program creates 4 forks and sums the numbers 1-1000.
 // The parent process will wait for all the children to finish before printing the sum.
 
-int pipefd[2];
+
+// Create an array of 4 pipes
+int pipefd[4][2];
 
 int main() {
   // Create the pipe.
-  pipe(pipefd);
+  for (int i = 0; i < 4; i++) {
+    pipe(pipefd[i]);
+  }
 
   int i;
   int pid;
@@ -26,7 +30,7 @@ int main() {
       int childSum = 100;
       printf("Child %d: %d\n", i, childSum);
       // Write 100 to the pipe.
-      write(pipefd[1], &childSum, sizeof(childSum));
+      write(pipefd[i][1], &childSum, sizeof(childSum));
       return 0;
     }
   }
@@ -39,11 +43,16 @@ int main() {
     printf("Process finished with status: %d\n", status);
   }
 
+  int totalSum = 0;
   int sumFromPipe;
   // Read 100 from the pipe.
-  read(pipefd[0], &sumFromPipe, sizeof(sumFromPipe));
-  
-  printf("Sum: %d\n", sumFromPipe);
+  // For each child process, read the sum from the pipe and add it to the total sum.
+  for (i = 0; i < 4; i++) {
+    read(pipefd[i][0], &sumFromPipe, sizeof(sumFromPipe));
+    totalSum += sumFromPipe;
+  }
+
+  printf("Sum: %d\n", totalSum);
   return 0;
 }
 
