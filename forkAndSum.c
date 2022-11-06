@@ -10,44 +10,40 @@
 // This program creates 4 forks and sums the numbers 1-1000.
 // The parent process will wait for all the children to finish before printing the sum.
 
-// Declare the global variable sum.
+int pipefd[2];
 
 int main() {
-  // Create a pipe to hold the sum.
-  int pipefd[2];
   // Create the pipe.
   pipe(pipefd);
-  // read end of the pipe
-  int readEnd = pipefd[0];
-  int writeEnd = pipefd[1];
 
-  int sum = 0;
-    int i;
-    int pid;
+  int i;
+  int pid;
 
-    for (i = 0; i < 4; i++) {
-      pid = fork();
-      if (pid == 0) {
-        // Child process
-        int childSum = 100;
-        printf("Child %d: %d\n", i, childSum);
-        // Set the write end of the pipe to the childSum.
-        write(pipefd[1], &childSum, sizeof(childSum));
-        return 0;
-      }
+  for (i = 0; i < 4; i++) {
+    pid = fork();
+    if (pid == 0) {
+      // Child process
+      int childSum = 100;
+      printf("Child %d: %d\n", i, childSum);
+      // Write 100 to the pipe.
+      write(pipefd[1], &childSum, sizeof(childSum));
+      return 0;
     }
+  }
 
   // Parent process
   int status;
 
   for (i = 0; i < 4; i++) {
-    printf("Process finished with status: %d\n", status);
     wait(&status);
+    printf("Process finished with status: %d\n", status);
   }
 
-  // Read the sum from the pipe.
-  int mySum = read(pipefd[0], &sum, sizeof(sum));
-  printf("Sum: %d\n", mySum);
+  int sumFromPipe;
+  // Read 100 from the pipe.
+  read(pipefd[0], &sumFromPipe, sizeof(sumFromPipe));
+  
+  printf("Sum: %d\n", sumFromPipe);
   return 0;
 }
 
