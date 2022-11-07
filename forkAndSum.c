@@ -13,6 +13,7 @@
 
 // Create an array of 4 pipes
 int pipefd[4][2];
+int fileStartEndIndex[2]; // Only way to return 2 values from a function
 
 int getNumber() {
   int userInput;
@@ -21,13 +22,37 @@ int getNumber() {
   return userInput;
 }
 
+// Function that returns the length of the file, seperated by newlines. Given a file name.
+int myFileLength(char *fileName) {
+  FILE *fpInit;
+  fpInit = fopen(fileName, "r");
+  // get the length of numbers in the file, seperated by newlines
+  int fileLength = 0;
+  char c;
+  for (c = getc(fpInit); c != EOF; c = getc(fpInit)) {
+    if (c == '\n') { fileLength++; }
+  }
+  fclose(fpInit);
+  return fileLength;
+}
+
+int * getChunk(int fileLength, int numChunks, int chunkIndex) {
+  int chunkSize = fileLength / numChunks;
+  int remainder = fileLength % numChunks;
+  int start = chunkIndex * chunkSize;
+  int end = start + chunkSize - 1;
+  if (chunkIndex == numChunks - 1) {
+    end += remainder;
+  }
+  fileStartEndIndex[0] = start;
+  fileStartEndIndex[1] = end;
+  return fileStartEndIndex;
+}
+
 int main() {
   int numPipes = getNumber();
-  if (numPipes > 4) {
-    // Raise an error
-    printf("You can only create 4 pipes at a time.\n");
-    return 1;
-  }
+
+  int fileLength = myFileLength("numbers/file1.dat");
 
   // Create the pipe.
   for (int i = 0; i < 4; i++) {
@@ -38,12 +63,33 @@ int main() {
   int pid;
 
   for (i = 0; i < numPipes; i++) {
+    int chunkIndex = i;
+
     pid = fork();
     if (pid == 0) {
       // Child process
-      int childSum = 100;
-      printf("Child %d: %d\n", i, childSum);
-      // Write 100 to the pipe.
+      int childSum = 0;
+      int chunkIndex = i;
+      int startIndex = getChunk(fileLength, numPipes, chunkIndex)[0];
+      int endIndex = getChunk(fileLength, numPipes, chunkIndex)[1];
+      // printf("Start index: %d, End index: %d\n", startIndex, endIndex);
+
+      // Open the file1.dat for the start and end index
+      // Sum up all the numbers
+      // Close the file
+      FILE *fp;
+      int num;
+      fp = fopen("numbers/file1.dat", "r");
+      // fseek(fp, startIndex * sizeof(int), SEEK_SET);
+      fseek(fp, (sizeof(int) + 1) * startIndex, SEEK_SET);
+      // for the range of start and end index
+      for (int i = startIndex; i <= endIndex; i++) {
+        fscanf(fp, "%d", &num);
+        childSum += (int)num;
+      }
+
+      printf("Sum of process(%d): %d\n", i, childSum);
+
       write(pipefd[i][1], &childSum, sizeof(childSum));
       return 0;
     }
@@ -54,7 +100,6 @@ int main() {
 
   for (i = 0; i < numPipes; i++) {
     wait(&status);
-    printf("Process finished with status: %d\n", status);
   }
 
   int totalSum = 0;
