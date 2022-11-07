@@ -32,8 +32,12 @@ int main(void) {
 
   FILE *fpInit;
   fpInit = fopen("numbers/file1.dat", "r");
-  fseek(fpInit, 0, SEEK_END);
-  int fileLength = ftell(fpInit) / (sizeof(int) + 1);
+  // get the length of numbers in the file, seperated by newlines
+  int fileLength = 0;
+  char c;
+  for (c = getc(fpInit); c != EOF; c = getc(fpInit)) {
+    if (c == '\n') { fileLength++; }
+  }
   fclose(fpInit);
 
   int sum = 0;
@@ -43,7 +47,7 @@ int main(void) {
     int chunkIndex = i;
     int startIndex = getChunk(fileLength, fileChunks, chunkIndex)[0];
     int endIndex = getChunk(fileLength, fileChunks, chunkIndex)[1];
-    printf("Start index: %d, End index: %d\n", startIndex, endIndex);
+    // printf("Start index: %d, End index: %d\n", startIndex, endIndex);
 
     // Open the file1.dat for the start and end index
     // Sum up all the numbers
@@ -52,16 +56,15 @@ int main(void) {
     int num;
     fp = fopen("numbers/file1.dat", "r");
     // fseek(fp, startIndex * sizeof(int), SEEK_SET);
-    fseek(fp, (sizeof(int) + 1), SEEK_SET);
+    fseek(fp, (sizeof(int) + 1) * startIndex, SEEK_SET);
     // for the range of start and end index
-    for (int i = startIndex; i < endIndex; i++) {
+    for (int i = startIndex; i <= endIndex; i++) {
       fscanf(fp, "%d", &num);
-      printf("%d\n", num);
       sum += (int)num;
     }
 
     // Print the sum
-    printf("Sum: %d\n", sum);
+    printf("Sum of chunk(%d): %d\n", i, sum);
   }
 
   // Print the sum
