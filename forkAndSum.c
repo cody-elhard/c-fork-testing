@@ -3,6 +3,8 @@
 #include <unistd.h>
 // Import the wait function from the unistd.h header file.
 #include <sys/wait.h>
+// Import the clock_t module
+#include <time.h>
 
 // To Run:
 // gcc forkAndSum.c -o forkAndSum && ./forkAndSum
@@ -67,6 +69,9 @@ int main() {
 
     pid = fork();
     if (pid == 0) {
+      // get start time of child
+      clock_t start = clock();
+
       // Child process
       int childSum = 0;
       int chunkIndex = i;
@@ -89,6 +94,13 @@ int main() {
       }
 
       printf("Sum of process(%d): %d\n", i, childSum);
+
+      // get end time of child
+      clock_t end = clock();
+
+      // get the total time of the child
+      double time_taken = ((double)(end - start));
+      printf("Time taken by process(%d): %f\n", i, time_taken);
 
       write(pipefd[i][1], &childSum, sizeof(childSum));
       return 0;
